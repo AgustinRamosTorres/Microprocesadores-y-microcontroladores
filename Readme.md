@@ -104,3 +104,4 @@ void loop() {
 }
 
 ````
+si tienes la sensación de que es la misma que de la pantalla OLED, no es una sensacion rara
