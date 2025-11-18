@@ -21,7 +21,7 @@ void loop() {
     Serial.println("hay menos luz");
     Serial.println((String)"Temperatura actual:\t" + (String)luminosidad);
   }
-  else//modo noche
+  else
   {
     Serial.println("hay más luz");
     Serial.println((String)"Temperatura actual:\t" + (String)luminosidad);
