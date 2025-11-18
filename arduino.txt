@@ -1,0 +1,17 @@
+void setup() {
+  Serial.begin(115200);  // Debe coincidir con la velocidad del ESP8266
+  delay(1000);
+  Serial.println("Arduino listo. Esperando datos del ESP8266...");
+}
+
+void loop() {
+  // 1. Si llega algo desde el ESP8266 → lo mostramos en la pantalla
+  if (Serial.available()) {
+    String mensaje = Serial.readStringUntil('\n');  // lee hasta salto de línea
+    Serial.print("ESP dice: ");
+    Serial.println(mensaje);
+
+    // 2. Arduino responde al ESP8266
+    Serial.println("Hola ESP, mensaje recibido!");
+  }
+}

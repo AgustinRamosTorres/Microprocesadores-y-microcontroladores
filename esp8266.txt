@@ -1,0 +1,52 @@
+#include <ESP8266WiFi.h>
+
+const char* ssid = "Pixel 9 De Agustín";
+const char* password = "Patata123";
+
+WiFiServer server(9000);  // Puerto TCP donde escuchará el ESP8266
+
+void setup() {
+  Serial.begin(115200);     // Puerto Serial Hardware (TX=GPIO1, RX=GPIO3)
+  WiFi.begin(ssid, password);
+
+  Serial.println();
+  Serial.println("Conectando a WiFi...");
+
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+
+  Serial.println("\nConectado!");
+  Serial.print("IP: ");
+  Serial.println(WiFi.localIP());
+
+  server.begin();
+}
+
+void loop() {
+  WiFiClient client = server.available();
+
+  if (client) {
+    Serial.println("Cliente conectado");
+
+    while (client.connected()) {
+
+      // --- Datos de WiFi -> UART y de vuelta al cliente ---
+      if (client.available()) {
+        int data = client.read();
+        Serial.write(data);       // enviar al UART
+        client.write(data);       // enviar de vuelta al cliente (echo)
+      }
+
+      // --- Datos UART -> WiFi ---
+      if (Serial.available()) {
+        int data = Serial.read();
+        client.write(data);       // enviar al cliente
+      }
+    }
+
+    client.stop();
+    Serial.println("Cliente desconectado");
+  }
+}
