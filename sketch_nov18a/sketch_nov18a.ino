@@ -1,54 +1,47 @@
+#include "DHT.h"
 
-#include <ESP8266WiFi.h>
+// ----- Configuración del sensor -----
+#define DHTPIN 7        // Pin digital donde está conectado el DHT11
+#define DHTTYPE DHT11   // Tipo de sensor (DHT11 azul)
 
-const char* ssid = "Pixel 9 De Agustín";
-const char* password = "Patata123";
-
-WiFiServer server(9000);  // Puerto TCP donde escuchará el ESP8266
+DHT dht(DHTPIN, DHTTYPE);
 
 void setup() {
-  Serial.begin(115200);     // Puerto Serial Hardware (TX=GPIO1, RX=GPIO3)
-  WiFi.begin(ssid, password);
+  Serial.begin(115200);
+  Serial.println("Iniciando sensor DHT11...");
+  
+  dht.begin();
 
-  Serial.println();
-  Serial.println("Conectando a WiFi...");
-
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.print(".");
-  }
-
-  Serial.println("\nConectado!");
-  Serial.print("IP: ");
-  Serial.println(WiFi.localIP());
-
-  server.begin();
+  Serial.println("Status\tHumedad (%)\tTemp (C)\tTemp (F)\tHeatIndex (C)\t(F)");
 }
 
-
 void loop() {
-  WiFiClient client = server.available();
+  // El DHT11 requiere al menos 1 segundo entre lecturas
+  delay(2000);
 
-  if (client) {
-    Serial.println("Cliente conectado");
+  float humidity = dht.readHumidity();
+  float temperatureC = dht.readTemperature();       // Celsius
+  float temperatureF = dht.readTemperature(true);   // Fahrenheit
 
-    while (client.connected()) {
-
-      // --- Datos de WiFi -> UART y de vuelta al cliente ---
-      if (client.available()) {
-        int data = client.read();
-        Serial.write(data);       // enviar al UART
-        client.write(data);       // enviar de vuelta al cliente (echo)
-      }
-
-      // --- Datos UART -> WiFi ---
-      if (Serial.available()) {
-        int data = Serial.read();
-        client.write(data);       // enviar al cliente
-      }
-    }
-
-    client.stop();
-    Serial.println("Cliente desconectado");
+  // Comprobar si la lectura falló
+  if (isnan(humidity) || isnan(temperatureC)) {
+    Serial.println("Error leyendo del DHT11");
+    return;
   }
+
+  // Cálculo de heat index
+  float heatIndexC = dht.computeHeatIndex(temperatureC, humidity, false);
+  float heatIndexF = dht.computeHeatIndex(temperatureF, humidity, true);
+
+  // Impresión
+  Serial.print("OK\t");
+  Serial.print(humidity);
+  Serial.print("\t\t");
+  Serial.print(temperatureC);
+  Serial.print("\t\t");
+  Serial.print(temperatureF);
+  Serial.print("\t\t");
+  Serial.print(heatIndexC);
+  Serial.print("\t\t");
+  Serial.println(heatIndexF);
 }
