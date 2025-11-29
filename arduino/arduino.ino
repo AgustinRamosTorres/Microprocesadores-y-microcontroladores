@@ -7,14 +7,30 @@
 //-----------------------------------------------------------------------------------//
 #define CENTINELASENSORAGUA 400 
 #define PINAGUAANALOG 5 
+#define PINZUMBADORDIGITAL 3 
+
 //-----------------------------------------------------------------------------------//
 // Inicializa el sensor DHT
 DHT dht(DHTPIN, DHTTYPE);
+
+//-----------------------------------------------------------------------------------//
+void chillarZumbadorInundacion(){
+
+  for (int i = 0; i<20; ++i) {
+    tone(PINZUMBADORDIGITAL, 500); // Send 1KHz sound signal...
+    delay(100);         // ...for 1 sec
+    noTone(PINZUMBADORDIGITAL);     // Stop sound...
+    delay(100);         // ...for 1sec
+  }
+
+}
+//-----------------------------------------------------------------------------------//
 
 void setup() {
   // Inicializa la comunicación serial a 9600 baudios
   // (0, 1) se refiere a los pines RX y TX que utiliza internamente 
   // la placa Arduino para el puerto serie USB.
+  pinMode(PINZUMBADORDIGITAL, OUTPUT); 
   Serial.begin(115200); 
   Serial.println("Iniciando la lectura del sensor DHT11...");
   
@@ -26,8 +42,7 @@ void loop() {
   // El DHT11 necesita un momento para tomar una lectura.
   // Se recomienda esperar al menos 2 segundos entre lecturas.
   if (analogRead(PINAGUAANALOG) <= CENTINELASENSORAGUA ){
-      // Hacer chillar el zumbador
-
+    chillarZumbadorInundacion();
   }
 
   delay(2000);
