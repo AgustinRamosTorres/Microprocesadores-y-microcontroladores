@@ -10,6 +10,10 @@
 #define PINDIGITALFUEGO 4
 #define PINZUMBADORDIGITAL 3 
 
+#define PINROJO 9
+#define PINVERDE 10
+#define PINAZUL 11 
+
 //-----------------------------------------------------------------------------------//
 // Inicializa el sensor DHT
 DHT dht(DHTPIN, DHTTYPE);
@@ -19,22 +23,32 @@ void chillarZumbadorInundacion(){
 
   for (int i = 0; i<20; ++i) {
     tone(PINZUMBADORDIGITAL, 500); // Send 1KHz sound signal...
+    setColor(0, 255, 0);
     delay(100);         // ...for 1 sec
     noTone(PINZUMBADORDIGITAL);     // Stop sound...
+    setColor(0, 0, 255);
     delay(100);         // ...for 1sec
   }
-
+  setColor(0, 0, 255);
 }
 
 void chillarZumbadorFuego(){
 
-    for (int i = 0; i<10; ++i) {
+  for (int i = 0; i<10; ++i) {
     tone(PINZUMBADORDIGITAL, 1000); // Send 1KHz sound signal...
+    setColor(0, 255, 0);
     delay(100);         // ...for 1 sec
     noTone(PINZUMBADORDIGITAL);     // Stop sound...
+    setColor(0, 0, 0);
     delay(100);         // ...for 1sec
   }
+  setColor(0, 255, 0);
+}
 
+void setColor(int red, int green, int blue) {
+  analogWrite(PINROJO, red);
+  analogWrite(PINVERDE, green);
+  analogWrite(PINAZUL, blue);
 }
 //-----------------------------------------------------------------------------------//
 
@@ -44,21 +58,31 @@ void setup() {
   // la placa Arduino para el puerto serie USB.
   pinMode(PINZUMBADORDIGITAL, OUTPUT); 
   pinMode(PINDIGITALFUEGO, INPUT);
+  pinMode(PINROJO, OUTPUT);
+  pinMode(PINVERDE, OUTPUT);
+  pinMode(PINAZUL, OUTPUT);
+  
   Serial.begin(115200); 
   Serial.println("Iniciando la lectura del sensor DHT11...");
   
   // Inicia el sensor DHT
   dht.begin();
+  setColor(255, 255, 255);
 }
 
 void loop() {
   if (analogRead(PINAGUAANALOG) <= CENTINELASENSORAGUA ){
     chillarZumbadorInundacion();
+  }else {
+    setColor(255, 255, 255);
+    if (digitalRead(PINDIGITALFUEGO) == 1){
+      chillarZumbadorFuego();
+    }else{
+      setColor(255, 255, 255);
+    }
   }
+  
 
-  if (digitalRead(PINDIGITALFUEGO) == 1){
-    chillarZumbadorFuego();
-  }
 
   delay(2000); // Recomendable para el sensor de fuego
 
