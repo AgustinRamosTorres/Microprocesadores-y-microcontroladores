@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control de Acceso - MSanchez</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js" type="text/javascript"></script>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --panel: rgba(255, 255, 255, 0.08);
+            --panel-border: rgba(255, 255, 255, 0.12);
+            --accent: #7dd3fc;
+            --accent-strong: #38bdf8;
+            --success: #22c55e;
+            --danger: #ef4444;
+            --text: #e2e8f0;
+            --muted: #94a3b8;
+            --shadow: 0 18px 60px rgba(0, 0, 0, 0.35);
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            padding: 32px 20px 60px;
+            font-family: 'Space Grotesk', 'Inter', system-ui, -apple-system, sans-serif;
+            color: var(--text);
+            background: radial-gradient(circle at 10% 20%, rgba(56, 189, 248, 0.24), transparent 26%),
+                        radial-gradient(circle at 80% 0%, rgba(14, 165, 233, 0.18), transparent 25%),
+                        radial-gradient(circle at 85% 65%, rgba(52, 211, 153, 0.16), transparent 30%),
+                        var(--bg);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+        }
+
+        .shell {
+            width: min(1100px, 100%);
+        }
+
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 28px;
+        }
+
+        .title {
+            text-align: left;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: clamp(1.6rem, 1.4rem + 1vw, 2.2rem);
+            letter-spacing: -0.5px;
+        }
+
+        .subtitle {
+            margin: 4px 0 0;
+            color: var(--muted);
+            font-size: 0.95rem;
+        }
+
+        .status {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 14px;
+            border-radius: 14px;
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            box-shadow: var(--shadow);
+            color: var(--muted);
+            font-weight: 500;
+            min-width: 170px;
+            justify-content: center;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 999px;
+            background: var(--muted);
+            box-shadow: 0 0 0 6px rgba(148, 163, 184, 0.1);
+        }
+
+        .grid {
+            display: grid;
+            gap: 18px;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        }
+
+        .card {
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            border-radius: 18px;
+            padding: 20px;
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(8px);
+        }
+
+        h2 {
+            margin: 0 0 12px;
+            font-size: 1.1rem;
+            letter-spacing: -0.2px;
+            color: #fff;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+
+        .badge {
+            padding: 4px 10px;
+            border-radius: 10px;
+            background: rgba(125, 211, 252, 0.15);
+            color: var(--accent-strong);
+            font-weight: 600;
+            font-size: 0.8rem;
+            border: 1px solid rgba(125, 211, 252, 0.25);
+        }
+
+        p {
+            margin: 8px 0;
+            color: var(--muted);
+        }
+
+        .value {
+            color: var(--accent);
+            font-weight: 600;
+            font-size: 1.05rem;
+        }
+
+        .actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 12px;
+        }
+
+        .btn {
+            flex: 1 1 120px;
+            padding: 12px;
+            font-size: 0.98rem;
+            cursor: pointer;
+            border: 1px solid transparent;
+            border-radius: 12px;
+            color: #0b1223;
+            font-weight: 700;
+            letter-spacing: 0.2px;
+            transition: transform 0.12s ease, box-shadow 0.15s ease, border-color 0.2s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.22);
+            border-color: rgba(255, 255, 255, 0.16);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-green { background: linear-gradient(120deg, #22c55e, #16a34a); color: #e6ffe9; }
+        .btn-red { background: linear-gradient(120deg, #ef4444, #dc2626); color: #fff3f3; }
+        .btn-blue { background: linear-gradient(120deg, #38bdf8, #2563eb); color: #e8f6ff; }
+
+        .sensor-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 12px;
+            margin: 12px 0;
+        }
+
+        .sensor {
+            padding: 12px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--panel-border);
+        }
+
+        .sensor strong {
+            display: block;
+            margin-bottom: 4px;
+            color: #fff;
+            font-size: 0.95rem;
+        }
+
+        .nfc {
+            margin-top: 10px;
+            font-size: 1.2rem;
+            color: var(--accent);
+            letter-spacing: 0.2px;
+        }
+
+        hr {
+            border: none;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            margin: 14px 0;
+        }
+
+        @media (max-width: 600px) {
+            header { flex-direction: column; align-items: flex-start; }
+            .status { width: 100%; justify-content: flex-start; }
+            .actions { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+    <div class="shell">
+        <header>
+            <div class="title">
+                <h1>Panel de Control IoT</h1>
+            </div>
+            <div class="status" id="connection-status">
+                <span class="status-dot" id="status-dot"></span>
+                <span id="status-label">Conectando...</span>
+            </div>
+        </header>
+
+        <div class="grid">
+            <div class="card">
+                <div class="section-header">
+                    <h2>🚪 Puerta Principal</h2>
+                    <span class="badge">Acceso</span>
+                </div>
+                <p>Estado: <span id="door-status" class="value">Desconocido</span></p>
+                <div class="actions">
+                    <button class="btn btn-green" onclick="enviarOrden('puerta/orden', 'ABRIR')">Abrir</button>
+                    <button class="btn btn-red" onclick="enviarOrden('puerta/orden', 'CERRAR')">Cerrar</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="section-header">
+                    <h2>⚙️ Sistemas</h2>
+                    <span class="badge">Control</span>
+                </div>
+
+                <p>Alarma Zumbador</p>
+                <div class="actions">
+                    <button class="btn btn-blue" onclick="enviarOrden('alarma/orden', 'ON')">Activar</button>
+                    <button class="btn btn-blue" onclick="enviarOrden('alarma/orden', 'OFF')">Desactivar</button>
+                </div>
+
+                <hr>
+
+                <p>Ventilación (Estado: <span id="vent-status" class="value">--</span>)</p>
+                <div class="actions">
+                    <button class="btn btn-blue" onclick="enviarOrden('ventilacion/orden', 'ON')">Encender</button>
+                    <button class="btn btn-blue" onclick="enviarOrden('ventilacion/orden', 'OFF')">Apagar</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="section-header">
+                    <h2>🌡️ Sensores & Accesos</h2>
+                    <span class="badge">Lecturas</span>
+                </div>
+
+                <div class="sensor-grid">
+                    <div class="sensor">
+                        <strong>Temperatura</strong>
+                        <span id="temp-val" class="value">--</span> °C
+                    </div>
+                    <div class="sensor">
+                        <strong>Humedad</strong>
+                        <span id="hum-val" class="value">--</span> %
+                    </div>
+                    <div class="sensor">
+                        <strong>Fuego</strong>
+                        <span id="fire-val" class="value">--</span>
+                    </div>
+                    <div class="sensor">
+                        <strong>Agua</strong>
+                        <span id="water-val" class="value">--</span>
+                    </div>
+                </div>
+
+                <hr>
+                <p>Último acceso NFC</p>
+                <p id="nfc-user" class="nfc">Esperando...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ------------ CONFIGURACIÓN MQTT -----------------
+        const mqtt_host = "msanchez.ovh";
+        const mqtt_port = 8444;
+        const mqtt_client_id = "web_" + parseInt(Math.random() * 10000);
+        const mqtt_user = "ardu";
+        const mqtt_pass = "JMMAMicro";
+        const mqtt_path = "/mqtt";
+
+        // ------------ Topics a suscribir -----------------
+        const topics = [
+            "puerta/estado",
+            "sensor/temperatura",
+            "sensor/humedad",
+            "nfc/usuario",
+            "ventilacion/estado",
+            "sensor/fuego",
+            "sensor/agua"
+        ];
+
+        // Crear cliente MQTT WebSocket
+        client = new Paho.MQTT.Client(mqtt_host, mqtt_port, mqtt_path, mqtt_client_id);
+
+        client.onConnectionLost = onConnectionLost;
+        client.onMessageArrived = onMessageArrived;
+
+        client.connect({
+            userName: mqtt_user,
+            password: mqtt_pass,
+            onSuccess: onConnect,
+            onFailure: onFailure,
+            useSSL: true
+        });
+
+        function setStatus(text, color) {
+            const dot = document.getElementById("status-dot");
+            const label = document.getElementById("status-label");
+            label.textContent = text;
+            dot.style.background = color;
+            dot.style.boxShadow = `0 0 0 6px ${color}20`;
+        }
+
+        function onConnect() {
+            setStatus("Conectado al servidor", "var(--success)");
+            topics.forEach(t => client.subscribe(t));
+        }
+
+        function onFailure(e) {
+            setStatus("Error de conexión", "var(--danger)");
+            console.log("Fallo conexión:", e.errorMessage);
+        }
+
+        function onConnectionLost(e) {
+            if (e.errorCode !== 0) {
+                setStatus("Conexión perdida", "var(--danger)");
+            }
+        }
+
+        // -------------------- MANEJO DE MENSAJES --------------------
+        function onMessageArrived(message) {
+            const topic = message.destinationName;
+            const payload = message.payloadString;
+
+            console.log(topic + " → " + payload);
+
+            switch (topic) {
+                case "puerta/estado":
+                    document.getElementById("door-status").innerText = payload;
+                    break;
+
+                case "sensor/temperatura":
+                    document.getElementById("temp-val").innerText = payload;
+                    break;
+
+                case "sensor/humedad":
+                    document.getElementById("hum-val").innerText = payload;
+                    break;
+
+                case "ventilacion/estado":
+                    document.getElementById("vent-status").innerText = payload;
+                    break;
+
+                case "sensor/fuego":
+                    document.getElementById("fire-val").innerText = payload;
+                    break;
+
+                case "sensor/agua":
+                    document.getElementById("water-val").innerText = payload;
+                    break;
+
+                case "nfc/usuario":
+                    let nfc = document.getElementById("nfc-user");
+                    nfc.innerText = payload;
+                    nfc.style.color = "orange";
+                    setTimeout(() => nfc.style.color = "#007bff", 800);
+                    break;
+            }
+        }
+
+        // -------------------- ENVIAR ÓRDENES --------------------
+        function enviarOrden(topic, mensaje) {
+            const msg = new Paho.MQTT.Message(mensaje);
+            msg.destinationName = topic;
+            client.send(msg);
+            console.log("Publicado:", topic, mensaje);
+        }
+    </script>
+</body>
+</html>
