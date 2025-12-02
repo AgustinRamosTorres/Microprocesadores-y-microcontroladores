@@ -7,7 +7,7 @@ DHTesp dht;
 
 // --- Configuración WiFi ---
 const char* ssid = "iPhone de manue";
-const char* password = "pitocaca";
+const char* password = "Patata123";
 
 // --- Configuración MQTT ---
 const char* mqtt_server = "msanchez.ovh"; 
