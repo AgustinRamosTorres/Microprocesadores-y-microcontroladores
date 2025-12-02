@@ -122,7 +122,7 @@ void setup() {
 }
 
 void loop() {
-  if (analogRead(PINAGUAANALOG) <= CENTINELASENSORAGUA) {
+  if (analogRead(PINAGUAANALOG) >= CENTINELASENSORAGUA) {
     chillarZumbadorInundacion();
   } else {
     setColor(255, 255, 255);
