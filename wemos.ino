@@ -11,8 +11,8 @@ String serialDataBuffer = "";
 //-----------------------------------------------------------------------------//
 
 // --- Configuración WiFi ---
-const char* ssid = "CASA";
-const char* password = "FAMILIARTAGUSTIN";
+const char* ssid = "AccesoAgustin";
+const char* password = "Patata123";
 
 // --- Configuración MQTT ---
 const char* mqtt_server   = "msanchez.ovh"; 
@@ -63,7 +63,6 @@ PubSubClient client(espClient);
 void procesarMensajeArduino(String line) {
     line.trim();
     if (line.length() == 0) return;
-
     int spaceIndex = line.indexOf(' ');
     if (spaceIndex == -1) return;
 
