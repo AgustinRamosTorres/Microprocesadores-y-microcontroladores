@@ -3,7 +3,9 @@
 #include <Wire.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
-
+#include <Servo.h>
+//-----------------------------------------------------------------------------------//
+Servo servo;   // Crea un objeto servo
 //-----------------------------------------------------------------------------------//
 // Inicializa el display I2C de 128x32
 Adafruit_SSD1306 display = Adafruit_SSD1306(128, 32, &Wire);
@@ -19,7 +21,7 @@ Adafruit_SSD1306 display = Adafruit_SSD1306(128, 32, &Wire);
 #define PINDIGITALFUEGO 4
 #define PINZUMBADORDIGITAL 3
 #define PINDIGITALVENTILADOR 6
-
+#define PINDIGITALSERVO 5
 #define PINROJO 9
 #define PINVERDE 10
 #define PINAZUL 11
@@ -87,6 +89,20 @@ void setColor(int red, int green, int blue) {
   analogWrite(PINVERDE, green);
   analogWrite(PINAZUL, blue);
 }
+
+void abrir(){
+  for (int angulo = 90; angulo <= 180; angulo++) {
+    servo.write(angulo);
+    delay(15);  // Ajusta la velocidad del movimiento
+  }
+}
+
+void cerar(){
+    for (int angulo = 180; angulo >= 90; angulo--) {
+    servo.write(angulo);
+    delay(15);  // Ajusta la velocidad del movimiento
+  }
+}
 //-----------------------------------------------------------------------------------//
 
 void setup() {
@@ -106,14 +122,14 @@ void setup() {
   // Inicia el sensor DHT
   dht.begin();
   setColor(255, 255, 255);
-
-
+  
+  //-----------------------------------------------------------------------------------//
+  servo.attach(PINDIGITALSERVO);  // Conecta la señal del servo al pin 9
   //-----------------------------------------------------------------------------------//
 
   // Inicializa el display con voltaje interno, dirección 0x3C
   if (!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
-    while (true)
-      ;  // Detener si falla
+    while (true);  // Detener si falla
   }
 
   // Muestra el splash inicial de Adafruit
@@ -143,9 +159,11 @@ void loop() {
     }
   }
 
-  encenderVentilador();
+  abrir();
+  //encenderVentilador();
   delay(2000);  // Recomendable para el sensor de fuego
-  apagarVentilador();
+  //apagarVentilador();
+  cerar();
 
   // --- LECTURA DEL SENSOR ---
   float h = dht.readHumidity();
