@@ -18,6 +18,7 @@ Adafruit_SSD1306 display = Adafruit_SSD1306(128, 32, &Wire);
 #define PINAGUAANALOG 0
 #define PINDIGITALFUEGO 4
 #define PINZUMBADORDIGITAL 3
+#define PINDIGITALVENTILADOR 6
 
 #define PINROJO 9
 #define PINVERDE 10
@@ -39,6 +40,14 @@ void chillarZumbadorInundacion() {
     delay(100);  // ...for 1sec
   }
   setColor(0, 0, 255);
+}
+
+void encenderVentilador(){
+  analogWrite(PINDIGITALVENTILADOR,255);
+}
+
+void apagarVentilador(){
+  analogWrite(PINDIGITALVENTILADOR,0);
 }
 
 void pintaTemperatura(float humedad, float temperatura) {
@@ -89,6 +98,7 @@ void setup() {
   pinMode(PINROJO, OUTPUT);
   pinMode(PINVERDE, OUTPUT);
   pinMode(PINAZUL, OUTPUT);
+  pinMode(PINDIGITALVENTILADOR, OUTPUT);
 
   Serial.begin(115200);
   Serial.println("Iniciando la lectura del sensor DHT11...");
@@ -133,7 +143,9 @@ void loop() {
     }
   }
 
+  encenderVentilador();
   delay(2000);  // Recomendable para el sensor de fuego
+  apagarVentilador();
 
   // --- LECTURA DEL SENSOR ---
   float h = dht.readHumidity();
@@ -143,7 +155,7 @@ void loop() {
   pintaTemperatura(h, t);
 
   Serial.print("TEMP ");
-  Serial.print(h);
-  Serial.print(" ");
   Serial.println(t);
+  Serial.print("HUM ");
+  Serial.println(h);
 }
