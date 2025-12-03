@@ -45,10 +45,12 @@ void chillarZumbadorInundacion() {
 }
 
 void encenderVentilador(){
+  Serial.println("VENT ENCENDIDO");
   analogWrite(PINDIGITALVENTILADOR,255);
 }
 
 void apagarVentilador(){
+  Serial.println("VENT APAGADO");
   analogWrite(PINDIGITALVENTILADOR,0);
 }
 
@@ -91,6 +93,7 @@ void setColor(int red, int green, int blue) {
 }
 
 void abrir(){
+  Serial.println("PUERTA ABIERTA");
   for (int angulo = 90; angulo <= 180; angulo++) {
     servo.write(angulo);
     delay(15);  // Ajusta la velocidad del movimiento
@@ -98,6 +101,7 @@ void abrir(){
 }
 
 void cerar(){
+    Serial.println("PUERTA CERRADA");
     for (int angulo = 180; angulo >= 90; angulo--) {
     servo.write(angulo);
     delay(15);  // Ajusta la velocidad del movimiento
@@ -149,21 +153,32 @@ void setup() {
 
 void loop() {
   if (analogRead(PINAGUAANALOG) >= CENTINELASENSORAGUA) {
+    Serial.println("AGUA MOJADO");
     chillarZumbadorInundacion();
-  } else {
-    setColor(255, 255, 255);
     if (digitalRead(PINDIGITALFUEGO) == 1) {
+      Serial.println("FUEGO FUEGO");
       chillarZumbadorFuego();
     } else {
       setColor(255, 255, 255);
+      Serial.println("FUEGO OK");
+    }
+  } else {
+    Serial.println("AGUA OK");
+    setColor(255, 255, 255);
+    if (digitalRead(PINDIGITALFUEGO) == 1) {
+      Serial.println("FUEGO FUEGO");
+      chillarZumbadorFuego();
+    } else {
+      setColor(255, 255, 255);
+      Serial.println("FUEGO OK");
     }
   }
 
-  abrir();
+  //abrir();
   //encenderVentilador();
   delay(2000);  // Recomendable para el sensor de fuego
   //apagarVentilador();
-  cerar();
+  //cerar();
 
   // --- LECTURA DEL SENSOR ---
   float h = dht.readHumidity();

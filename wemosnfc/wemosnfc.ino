@@ -17,7 +17,7 @@ const char* password = "Patata123";
 // --- Configuración MQTT ---
 const char* mqtt_server   = "msanchez.ovh"; 
 const int   mqtt_port     = 1883;
-const char* mqtt_client_id = "ESP8266_Control_MSanchez"; 
+const char* mqtt_client_id = "ESP8266_NFC_MSanchez"; 
 const char* mqtt_user     = "ardu";
 const char* mqtt_password = "JMMAMicro";
 
@@ -28,7 +28,7 @@ const char* TOPIC_FIRE        = "sensor/fuego";
 const char* TOPIC_WATER       = "sensor/agua";
 const char* TOPIC_VENT_STATE  = "ventilacion/estado";
 const char* TOPIC_DOOR_STATUS = "puerta/estado";
-const char* TOPIC_NFC_USER    = "nfc/usuario";
+const char* TOPIC_NFC_USER    = "nfc/leido";
 
 // ------------------ TOPICS ÓRDENES (Web → Arduino) ------------------
 const char* TOPIC_ORDER_DOOR        = "puerta/orden";
@@ -135,6 +135,10 @@ void callback(char* topic, byte* payload, unsigned int length) {
     for (int i = 0; i < length; i++)
         command += (char)payload[i];
 
+    Serial.print("MQTT → ORDEN: ");
+    Serial.print(topic);
+    Serial.print(" => ");
+    Serial.println(command);
 
     // reenviamos al Arduino
     Serial.print("CMD ");
