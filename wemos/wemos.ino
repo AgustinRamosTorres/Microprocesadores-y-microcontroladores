@@ -72,11 +72,6 @@ void procesarMensajeArduino(String line) {
     key.trim();
     value.trim();
 
-    Serial.print("Arduino → ");
-    Serial.print(key);
-    Serial.print(" = ");
-    Serial.println(value);
-
     // --- ENRUTAR AL TOPIC MQTT CORRESPONDIENTE ---
     if (key == "TEMP")
         client.publish(TOPIC_TEMP, value.c_str());
@@ -135,12 +130,12 @@ void callback(char* topic, byte* payload, unsigned int length) {
     for (int i = 0; i < length; i++)
         command += (char)payload[i];
 
-
     // reenviamos al Arduino
     Serial.print("CMD ");
     Serial.print(topic);
     Serial.print(" ");
     Serial.println(command);
+    delay(1000);
 }
 
 

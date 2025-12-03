@@ -6,6 +6,7 @@
 #include <Servo.h>
 //-----------------------------------------------------------------------------------//
 Servo servo;   // Crea un objeto servo
+String bufferComando = "";
 //-----------------------------------------------------------------------------------//
 // Inicializa el display I2C de 128x32
 Adafruit_SSD1306 display = Adafruit_SSD1306(128, 32, &Wire);
@@ -31,6 +32,80 @@ Adafruit_SSD1306 display = Adafruit_SSD1306(128, 32, &Wire);
 DHT dht(DHTPIN, DHTTYPE);
 
 //-----------------------------------------------------------------------------------//
+void procesarComando(String linea) {
+  Serial.println(linea);
+  linea.trim();
+  if (!linea.startsWith("CMD ")) return;
+
+  // Quitar "CMD "
+  linea = linea.substring(4);
+
+  // topic  value
+  int sep = linea.indexOf(' ');
+  if (sep == -1) return;
+
+  String topic = linea.substring(0, sep);
+  String value = linea.substring(sep + 1);
+
+  Serial.print("Comando recibido -> ");
+  Serial.print(topic);
+  Serial.print(" = ");
+  Serial.println(value);
+
+  // ---- PUERTA ----
+  if (topic == "puerta/orden") {
+    if (value == "ABRIR") abrir();
+    else if (value == "CERRAR") cerar();
+  }
+
+  // ---- VENTILACION ----
+  else if (topic == "ventilacion/orden") {
+    if (value == "ON") encenderVentilador();
+    else if (value == "OFF") apagarVentilador();
+  }
+
+  // ---- ALARMA ----
+  else if (topic == "alarma/orden") {
+    if (value == "ON") {
+      Serial.println("ALARMA ACTIVADA");
+      tone(PINZUMBADORDIGITAL, 1000);
+    } else if (value == "OFF") {
+      Serial.println("ALARMA DESACTIVADA");
+      noTone(PINZUMBADORDIGITAL);
+    }
+  }
+
+  // ---- PERMISOS ----
+  else if (topic == "puerta/permisos") {
+    Serial.print("Permisos: ");
+    Serial.println(value);
+  }
+}
+
+// Leer línea completa proveniente del Wemos
+void leerComandosWemos() {
+  while (Serial.available()) {
+    char c = Serial.read();
+
+    // Construimos la línea SOLO si empieza por CMD
+    if (bufferComando.length() == 0) {
+      // Aún no sabemos lo que es → solo aceptamos si empieza por 'C'
+      if (c != 'C') continue;  
+    }
+
+    bufferComando += c;
+
+    // Si llegó fin de línea, procesar
+    if (c == '\n') {
+      if (bufferComando.startsWith("CMD ")) {
+        procesarComando(bufferComando);
+      }
+      // Limpiar siempre
+      bufferComando = "";
+    }
+  }
+}
+
 void chillarZumbadorInundacion() {
 
   for (int i = 0; i < 20; ++i) {
@@ -152,6 +227,11 @@ void setup() {
 }
 
 void loop() {
+
+  // -------------------- NUEVO ------------------------
+  leerComandosWemos();   // ← lee CMD del Wemos continuamente
+  // ----------------------------------------------------
+
   if (analogRead(PINAGUAANALOG) >= CENTINELASENSORAGUA) {
     Serial.println("AGUA MOJADO");
     chillarZumbadorInundacion();
@@ -174,17 +254,11 @@ void loop() {
     }
   }
 
-  //abrir();
-  //encenderVentilador();
-  delay(2000);  // Recomendable para el sensor de fuego
-  //apagarVentilador();
-  //cerar();
+  delay(2000);
 
-  // --- LECTURA DEL SENSOR ---
   float h = dht.readHumidity();
   float t = dht.readTemperature();
 
-  // --- ENVÍO DE DATOS POR EL PUERTO SERIE ---
   pintaTemperatura(h, t);
 
   Serial.print("TEMP ");
