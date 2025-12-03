@@ -11,13 +11,13 @@ String serialDataBuffer = "";
 //-----------------------------------------------------------------------------//
 
 // --- Configuración WiFi ---
-const char* ssid = "AccesoAgustin";
+const char* ssid = "amsiedad";
 const char* password = "Patata123";
 
 // --- Configuración MQTT ---
 const char* mqtt_server   = "msanchez.ovh"; 
 const int   mqtt_port     = 1883;
-const char* mqtt_client_id = "ESP8266_Control_MSanchez"; 
+const char* mqtt_client_id = "ESP8266_NFC_MSanchez"; 
 const char* mqtt_user     = "ardu";
 const char* mqtt_password = "JMMAMicro";
 
