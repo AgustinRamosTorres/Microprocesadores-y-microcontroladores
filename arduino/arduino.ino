@@ -174,7 +174,7 @@ void abrir(){
   display.clearDisplay();
   display.display();
 
-  display.print("ADELANTE :)");
+  display.print("ADELANTE");
 
   display.display();
 
@@ -186,6 +186,18 @@ void abrir(){
 
 void cerar(){
     p = "CERRADA";
+
+  display.setTextSize(2);
+  display.setTextColor(SSD1306_WHITE);
+  display.setCursor(0, 0);
+
+    // Limpia la pantalla
+  display.clearDisplay();
+  display.display();
+
+  display.print("CERRADO");
+
+  display.display();
     for (int angulo = 180; angulo >= 90; angulo--) {
     servo.write(angulo);
     delay(15);  // Ajusta la velocidad del movimiento
@@ -229,6 +241,7 @@ void setup() {
 
   // Configura texto
   pintaTemperatura(0, 0);
+  cerar();
 
   //-----------------------------------------------------------------------------------//
 }
