@@ -54,7 +54,9 @@ void leerNombre() {
   if (tryReadNtagText(nombre)) {
     Serial.print("NFC ");
     Serial.println(nombre);
+    tone(9, 1000);  // Send 1KHz sound signal...
     delay(1000);
+    noTone(9);  // Send 1KHz sound signal...
     return;
   }
 
@@ -62,7 +64,9 @@ void leerNombre() {
   if (tryReadMifareClassicBlockASCII(4, nombre)) {
     Serial.print("NFC ");
     Serial.println(nombre);
+    tone(9, 1000);  // Send 1KHz sound signal...
     delay(1000);
+    noTone(9);  // Send 1KHz sound signal...
     return;
   }
 
