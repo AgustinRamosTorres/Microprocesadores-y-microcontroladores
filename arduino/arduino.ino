@@ -7,6 +7,7 @@
 //-----------------------------------------------------------------------------------//
 Servo servo;   // Crea un objeto servo
 String bufferComando = "";
+String p = "CERRADA"; 
 //-----------------------------------------------------------------------------------//
 // Inicializa el display I2C de 128x32
 Adafruit_SSD1306 display = Adafruit_SSD1306(128, 32, &Wire);
@@ -33,7 +34,6 @@ DHT dht(DHTPIN, DHTTYPE);
 
 //-----------------------------------------------------------------------------------//
 void procesarComando(String linea) {
-  Serial.println(linea);
   linea.trim();
   if (!linea.startsWith("CMD ")) return;
 
@@ -47,10 +47,6 @@ void procesarComando(String linea) {
   String topic = linea.substring(0, sep);
   String value = linea.substring(sep + 1);
 
-  Serial.print("Comando recibido -> ");
-  Serial.print(topic);
-  Serial.print(" = ");
-  Serial.println(value);
 
   // ---- PUERTA ----
   if (topic == "puerta/orden") {
@@ -110,10 +106,10 @@ void chillarZumbadorInundacion() {
 
   for (int i = 0; i < 20; ++i) {
     tone(PINZUMBADORDIGITAL, 500);  // Send 1KHz sound signal...
-    setColor(0, 255, 0);
+    setColor(0, 0, 255);
     delay(100);                  // ...for 1 sec
     noTone(PINZUMBADORDIGITAL);  // Stop sound...
-    setColor(0, 0, 255);
+    setColor(255, 0, 0);
     delay(100);  // ...for 1sec
   }
   setColor(0, 0, 255);
@@ -152,13 +148,13 @@ void chillarZumbadorFuego() {
 
   for (int i = 0; i < 10; ++i) {
     tone(PINZUMBADORDIGITAL, 1000);  // Send 1KHz sound signal...
-    setColor(0, 255, 0);
+    setColor(255, 0, 0);
     delay(100);                  // ...for 1 sec
     noTone(PINZUMBADORDIGITAL);  // Stop sound...
     setColor(0, 0, 0);
     delay(100);  // ...for 1sec
   }
-  setColor(0, 255, 0);
+  setColor(255, 0, 0);
 }
 
 void setColor(int red, int green, int blue) {
@@ -168,7 +164,20 @@ void setColor(int red, int green, int blue) {
 }
 
 void abrir(){
-  Serial.println("PUERTA ABIERTA");
+  p = "ABIERTA";
+  
+  display.setTextSize(3);
+  display.setTextColor(SSD1306_WHITE);
+  display.setCursor(0, 0);
+
+    // Limpia la pantalla
+  display.clearDisplay();
+  display.display();
+
+  display.print("ADELANTE :)");
+
+  display.display();
+
   for (int angulo = 90; angulo <= 180; angulo++) {
     servo.write(angulo);
     delay(15);  // Ajusta la velocidad del movimiento
@@ -176,7 +185,7 @@ void abrir(){
 }
 
 void cerar(){
-    Serial.println("PUERTA CERRADA");
+    p = "CERRADA";
     for (int angulo = 180; angulo >= 90; angulo--) {
     servo.write(angulo);
     delay(15);  // Ajusta la velocidad del movimiento
@@ -196,7 +205,6 @@ void setup() {
   pinMode(PINDIGITALVENTILADOR, OUTPUT);
 
   Serial.begin(115200);
-  Serial.println("Iniciando la lectura del sensor DHT11...");
 
   // Inicia el sensor DHT
   dht.begin();
@@ -221,7 +229,6 @@ void setup() {
 
   // Configura texto
   pintaTemperatura(0, 0);
-
 
   //-----------------------------------------------------------------------------------//
 }
@@ -260,7 +267,8 @@ void loop() {
   float t = dht.readTemperature();
 
   pintaTemperatura(h, t);
-
+  Serial.print ("PUERTA ");
+  Serial.println(p);
   Serial.print("TEMP ");
   Serial.println(t);
   Serial.print("HUM ");
