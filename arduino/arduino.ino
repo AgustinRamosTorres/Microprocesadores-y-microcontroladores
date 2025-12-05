@@ -73,8 +73,18 @@ void procesarComando(String linea) {
 
   // ---- PERMISOS ----
   else if (topic == "puerta/permisos") {
-    Serial.print("Permisos: ");
-    Serial.println(value);
+    if (value == "DENEGADO") {
+      display.setTextSize(2);
+      display.setTextColor(SSD1306_WHITE);
+      display.setCursor(0, 0);
+        // Limpia la pantalla
+      display.clearDisplay();
+      display.display();
+
+      display.print(value);
+
+      display.display();
+    }
   }
 }
 
