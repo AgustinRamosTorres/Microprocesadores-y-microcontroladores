@@ -166,7 +166,7 @@ void setColor(int red, int green, int blue) {
 void abrir(){
   p = "ABIERTA";
   
-  display.setTextSize(3);
+  display.setTextSize(2);
   display.setTextColor(SSD1306_WHITE);
   display.setCursor(0, 0);
 
