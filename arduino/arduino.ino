@@ -27,7 +27,7 @@ Adafruit_SSD1306 display = Adafruit_SSD1306(128, 32, &Wire);
 #define PINROJO 9
 #define PINVERDE 10
 #define PINAZUL 11
-
+#define TEMPERATURAVENTILACION 20
 //-----------------------------------------------------------------------------------//
 // Inicializa el sensor DHT
 DHT dht(DHTPIN, DHTTYPE);
@@ -269,17 +269,31 @@ void loop() {
       Serial.println("FUEGO FUEGO");
       chillarZumbadorFuego();
     } else {
-      setColor(255, 255, 255);
+      if (p == "CERRADA"){
+        setColor(0, 0, 0);
+      }else {
+        setColor(255, 255, 255);
+      }
       Serial.println("FUEGO OK");
     }
   } else {
     Serial.println("AGUA OK");
-    setColor(255, 255, 255);
+
+    if (p == "CERRADA"){
+      setColor(0, 0, 0);
+    }else {
+      setColor(255, 255, 255);
+    }
+
     if (digitalRead(PINDIGITALFUEGO) == 1) {
       Serial.println("FUEGO FUEGO");
       chillarZumbadorFuego();
     } else {
-      setColor(255, 255, 255);
+      if (p == "CERRADA"){
+        setColor(0, 0, 0);
+      }else {
+        setColor(255, 255, 255);
+      }
       Serial.println("FUEGO OK");
     }
   }
@@ -288,6 +302,12 @@ void loop() {
 
   float h = dht.readHumidity();
   float t = dht.readTemperature();
+
+  if (t > TEMPERATURAVENTILACION){
+    encenderVentilador();
+  }else {
+    apagarVentilador();
+  }
 
   pintaTemperatura(h, t);
   Serial.print ("PUERTA ");
